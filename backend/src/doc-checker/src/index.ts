@@ -1,11 +1,9 @@
 import { type Doc, load, save } from "@automerge/automerge";
 
+/**
+ * node-vite seems to have issues with the wasm plugin,
+ * so I have extracted this function to a separate package.
+ */
 export function checkDoc(doc: Doc<unknown>) {
-  try {
-    load(save(doc));
-
-    console.log("Doc is valid");
-  } catch (e) {
-    console.log("Document Error", e);
-  }
+  load(save(doc));
 }

@@ -48,7 +48,7 @@
 
   export function incrementCount(n: number) {
     for (let i = 0; i < n; i++) {
-      handle.change((doc) => {
+      handle.change((doc: DocStructure) => {
         doc.counter.value ? doc.counter.value++ : (doc.counter.value = 1);
         doc.counter.updatedAt = Date.now();
       });
