@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { data } from './Data';
+	import { load, loadIncremental, save, init } from '@automerge/automerge';
   import Repo from "./Repo.svelte";
   import localforage from "localforage";
-  import { type DocumentId } from "automerge-repo";
+  import type {  DocHandle, DocumentId } from "automerge-repo";
   import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage";
   import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket";
   import { Repo as AutomergeRepo } from "automerge-repo";
-  import { type DocStructure } from "./types";
+  import type {  DocStructure } from "./types";
 
   let repo1, repo2;
   let ready = false;
@@ -22,9 +24,11 @@
     text: { updatedAt: 0, value: "" },
   };
 
+  // const doc = loadIncremental(init(), data);
+
   const setupRepo = () => {
     if (ready) return;
-    let handle;
+    let handle: DocHandle<DocStructure>;
 
     localforage.getItem("rootDocId").then(async (docId) => {
       if (!docId) {
@@ -40,9 +44,16 @@
           });
         });
 
-        await handle.value();
+        const doc = await handle.value();
         ready = true;
+
+        console.log(save(doc));
       } else {
+        handle = repo.find(docId as DocumentId);
+
+        const doc = await handle.value();
+        load(save(doc));
+        console.log(save(doc));
         documentId = docId as DocumentId;
         ready = true;
       }
@@ -77,7 +88,7 @@
 <div class="flex border-b p-4">
   <div>
     <button
-      on:click={() => theBadThing(20)}
+      on:click={() => theBadThing()}
       class="bg-red-300 text-red-800 p-2 rounded px-4"
     >
       Make bad things happen</button
@@ -97,11 +108,11 @@
   <div class="container flex divide-x divide-grey-100 h-screen">
     <div class="w-1/2 p-4">
       <h2 class="text-lg font-bold">Repo 1</h2>
-      <Repo bind:this={repo1} />
+      <Repo bind:this={repo1} name='repo1'/>
     </div>
     <div class="w-1/2 p-4">
       <h2 class="text-lg font-bold">Repo 2</h2>
-      <Repo bind:this={repo2} />
+      <Repo bind:this={repo2} name='repo2' />
     </div>
   </div>
 {/if}

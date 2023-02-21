@@ -14,9 +14,8 @@ import {
 } from "automerge-repo"
 
 export class NodeWSServerAdapter
-    extends EventEmitter<NetworkAdapterEvents>
-    implements NetworkAdapter
-{
+  extends EventEmitter<NetworkAdapterEvents>
+  implements NetworkAdapter {
   peerId?: PeerId
   server: WebSocketServer
   sockets: { [peerId: PeerId]: WebSocket } = {}
@@ -36,7 +35,7 @@ export class NodeWSServerAdapter
       //})
 
       socket.on("message", (message) =>
-          this.receiveMessage(message as Uint8Array, socket)
+        this.receiveMessage(message as Uint8Array, socket)
       )
     })
   }
@@ -50,10 +49,10 @@ export class NodeWSServerAdapter
   }
 
   sendMessage(
-      targetId: PeerId,
-      channelId: ChannelId,
-      message: Uint8Array,
-      broadcast: boolean
+    targetId: PeerId,
+    channelId: ChannelId,
+    message: Uint8Array,
+    broadcast: boolean
   ) {
     if (message.byteLength === 0) {
       throw new Error("tried to send a zero-length message")
@@ -76,12 +75,12 @@ export class NodeWSServerAdapter
     // This incantation deals with websocket sending the whole
     // underlying buffer even if we just have a uint8array view on it
     const arrayBuf = encoded.buffer.slice(
-        encoded.byteOffset,
-        encoded.byteOffset + encoded.byteLength
+      encoded.byteOffset,
+      encoded.byteOffset + encoded.byteLength
     )
 
     log(
-        `[${senderId}->${targetId}@${channelId}] "sync" | ${arrayBuf.byteLength} bytes`
+      `[${senderId}->${targetId}@${channelId}] "sync" | ${arrayBuf.byteLength} bytes`
     )
 
     this.sockets[targetId].send(arrayBuf)
@@ -89,7 +88,7 @@ export class NodeWSServerAdapter
 
   async receiveMessage(message: Uint8Array, socket: WebSocket) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    
+
     const cbor = CBOR.decode(message)
     const { type, channelId, senderId, targetId, data, broadcast } = cbor
     const myPeerId = this.peerId
@@ -97,7 +96,7 @@ export class NodeWSServerAdapter
       throw new Error("Missing my peer ID.")
     }
     log(
-        `[${senderId}->${myPeerId}@${channelId}] ${type} | ${message.byteLength} bytes`
+      `[${senderId}->${myPeerId}@${channelId}] ${type} | ${message.byteLength} bytes`
     )
     switch (type) {
       case "join":
@@ -108,7 +107,7 @@ export class NodeWSServerAdapter
         // In this client-server connection, there's only ever one peer: us!
         // (and we pretend to be joined to every channel)
         socket.send(
-            CBOR.encode({ type: "peer", senderId: this.peerId, channelId })
+          CBOR.encode({ type: "peer", senderId: this.peerId, channelId })
         )
         break
       case "leave":

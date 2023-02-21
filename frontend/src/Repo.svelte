@@ -1,15 +1,19 @@
 <script lang="ts">
-  import { DocHandle, type DocumentId, Repo } from "automerge-repo";
+  import { DocHandle, type DocumentId, Repo, type PeerId } from "automerge-repo";
   import { type Readable, readable, writable } from "svelte/store";
   import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage";
   import localforage from "localforage";
   import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket";
-  import { type DocStructure } from "./types";
+  import type { DocStructure } from "./types";
+
+  export let name: string;
+
   const loaded = writable<boolean>(false);
 
   const repo = new Repo({
     storage: new LocalForageStorageAdapter(),
     network: [new BrowserWebSocketClientAdapter("ws://localhost:3030")],
+    peerId: name as PeerId,
   });
 
   let main: Readable<DocStructure>, handle: DocHandle<DocStructure>;
@@ -31,7 +35,11 @@
         docId ? handle.doc : initialState,
         (set) => {
           const listener = async ({ handle }) => {
-            set(await handle.value());
+            const value = await handle.value();
+            set(value);
+            setTimeout(() => {
+              console.log(name, value.counter.value);
+            });
             loaded.set(true);
           };
           handle.on("change", listener);
